@@ -3,17 +3,19 @@ import React, { memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import { Database, Search, GitMerge, ListFilter } from 'lucide-react';
 
-
-// Balu todo: Add unique styles for each different steps
-
 const getNodeStyle = (type) => {
   const t = type.toLowerCase();
-  
+  if (t.includes('scan')) return 'border-red-500 bg-red-50';
+  if (t.includes('join')) return 'border-blue-500 bg-blue-50';
+  if (t.includes('sort') || t.includes('aggregate')) return 'border-yellow-500 bg-yellow-50';
   return 'border-gray-300 bg-white';
 };
 
 const getIcon = (type) => {
     const t = type.toLowerCase();
+    if (t.includes('scan')) return <Search className="w-4 h-4 text-red-600" />;
+    if (t.includes('join')) return <GitMerge className="w-4 h-4 text-blue-600" />;
+    if (t.includes('seq')) return <ListFilter className="w-4 h-4 text-orange-600" />;
     return <Database className="w-4 h-4 text-gray-600" />;
 };
 
