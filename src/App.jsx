@@ -29,14 +29,23 @@ function App() {
   );
 
   const handleVisualize = () => {
-    const raw = JSON.parse(jsonInput);
+    try {
+      setError(null);
+      // Clean input (sometimes people paste 'EXPLAIN ...' text before the JSON)
+      const raw = JSON.parse(jsonInput);
       
-    const rootPlan = raw[0].Plan;
+      // Postgres usually wraps the plan in an array: [{ Plan: ... }]
+      const rootPlan = Array.isArray(raw) ? raw[0].Plan : raw.Plan;
+      
+      if (!rootPlan) throw new Error("Invalid JSON: Could not find 'Plan' property.");
 
-    const { nodes: newNodes, edges: newEdges } = parsePlanToGraph(rootPlan);
-    
-    setNodes(newNodes);
-    setEdges(newEdges);
+      const { nodes: newNodes, edges: newEdges } = parsePlanToGraph(rootPlan);
+      
+      setNodes(newNodes);
+      setEdges(newEdges);
+    } catch (e) {
+      setError("Failed to parse JSON. Ensure you used 'FORMAT JSON'. Details: " + e.message);
+    }
   };
 
   return (
