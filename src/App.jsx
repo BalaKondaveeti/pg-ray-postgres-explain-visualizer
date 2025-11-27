@@ -9,6 +9,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 
 import { parsePlanToGraph } from './utils/parser';
+import { parseTextPlan } from './utils/textParser';
 import PlanNode from './components/PlanNode';
 
 const nodeTypes = { customPlanNode: PlanNode };
@@ -29,22 +30,43 @@ function App() {
   );
 
   const handleVisualize = () => {
-    try {
-      setError(null);
-      // Clean input (sometimes people paste 'EXPLAIN ...' text before the JSON)
-      const raw = JSON.parse(jsonInput);
-      
-      // Postgres usually wraps the plan in an array: [{ Plan: ... }]
-      const rootPlan = Array.isArray(raw) ? raw[0].Plan : raw.Plan;
-      
-      if (!rootPlan) throw new Error("Invalid JSON: Could not find 'Plan' property.");
+    setError(null);
+    if (!jsonInput.trim()) {
+        setError("Please paste your explain output first.");
+        return;
+    }
 
+    try {
+      let rootPlan;
+      const trimmedInput = jsonInput.trim();
+      const firstChar = trimmedInput[0];
+
+      // STRATEGY 1: JSON Input
+      if (firstChar === '{' || firstChar === '[') {
+        const raw = JSON.parse(trimmedInput);
+        const rootNode = Array.isArray(raw) ? raw[0] : raw;
+        if (!rootNode || !rootNode.Plan) {
+            throw new Error("JSON valid, but 'Plan' field missing.");
+        }
+        rootPlan = rootNode.Plan;
+      } 
+      // STRATEGY 2: Text Input
+      else {
+        // Assume it's text and try to parse it
+        rootPlan = parseTextPlan(trimmedInput);
+        if (!rootPlan) {
+            throw new Error("Could not parse text plan. Ensure it matches standard Postgres format.");
+        }
+      }
+
+      // Generate Graph
       const { nodes: newNodes, edges: newEdges } = parsePlanToGraph(rootPlan);
-      
       setNodes(newNodes);
       setEdges(newEdges);
+
     } catch (e) {
-      setError("Failed to parse JSON. Ensure you used 'FORMAT JSON'. Details: " + e.message);
+      console.error(e);
+      setError("Failed to generate graph. " + e.message);
     }
   };
 
