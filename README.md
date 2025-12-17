@@ -36,7 +36,7 @@ It is a safe, lightweight utility that I built for myself, but it is useful for 
 
 ---
 
-## Roadmap & Future Features [Please contribute]
+## Roadmap & Future Features
 
 Would love your help in completing these! Here is what is coming next:
 
